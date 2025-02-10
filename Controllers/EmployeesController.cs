@@ -13,12 +13,10 @@ namespace EmployeeAdminPortal.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-        private readonly ApplicationDbContext dbContext;
         private readonly EmployeeServices _employeeService;
 
-        public EmployeesController(ApplicationDbContext dbContext, EmployeeServices employeeService)
+        public EmployeesController( EmployeeServices employeeService)
         {
-            this.dbContext = dbContext;
             this._employeeService = employeeService;
         }
 
@@ -61,11 +59,7 @@ namespace EmployeeAdminPortal.Controllers
         {
             try
             {
-                var employee = await dbContext.Employees.FindAsync(id);
-                if (employee is null)
-                {
-                    return NotFound();
-                }
+                var employee = await _employeeService.GetEmployeeById(id);
                 return Ok(employee);
             }
             catch (Exception ex)
@@ -95,7 +89,7 @@ namespace EmployeeAdminPortal.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
-        public async Task<IActionResult> DeleteEmployeeById(Guid id) 
+        public IActionResult DeleteEmployeeById(Guid id) 
         {
             try
             {

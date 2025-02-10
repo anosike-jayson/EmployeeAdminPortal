@@ -77,6 +77,17 @@ namespace EmployeeAdminPortal.Services
             }
         }
 
+        public async Task<Object> GetEmployeeById(Guid id)
+        {
+            var employee = await dbContext.Employees.FindAsync(id);
+            if (employee == null)
+            {
+                return ("employee not found");
+            }
+
+            return employee;
+        }
+
         public async Task DeleteEmployee(Guid id)
         {
             var employee = await dbContext.Employees.FindAsync(id);
