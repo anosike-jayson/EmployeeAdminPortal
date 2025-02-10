@@ -1,6 +1,7 @@
 ﻿using EmployeeAdminPortal.Data;
 using EmployeeAdminPortal.Models;
 using EmployeeAdminPortal.Models.Entities;
+using EmployeeAdminPortal.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,17 +14,20 @@ namespace EmployeeAdminPortal.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
+        private readonly EmployeeServices _employeeService;
 
-        public EmployeesController(ApplicationDbContext dbContext)
+        public EmployeesController(ApplicationDbContext dbContext, EmployeeServices employeeService)
         {
             this.dbContext = dbContext;
+            this._employeeService = employeeService;
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAllEmployees()
         {
             try
             {
-                var allEmployees = await dbContext.Employees.ToListAsync();
+                var allEmployees = await _employeeService.GetEmployees();
 
                 return Ok(allEmployees);
             }
@@ -40,18 +44,8 @@ namespace EmployeeAdminPortal.Controllers
         {
             try
             {
-                var employeeEntity = new Employee()
-                {
-                    Email = addEmployeeDto.Email,
-                    Name = addEmployeeDto.Name,
-                    Phone = addEmployeeDto.Phone,
-                    Salary = addEmployeeDto.Salary
-                };
-
-                await dbContext.Employees.AddAsync(employeeEntity);
-                await dbContext.SaveChangesAsync();
-
-                return Ok(employeeEntity);
+                var addedEmployee = await _employeeService.AddEmployee(addEmployeeDto);
+                return Ok(addedEmployee);
             }
             catch (Exception ex)
             {
@@ -88,18 +82,7 @@ namespace EmployeeAdminPortal.Controllers
         {
             try
             {
-                var employee = await dbContext.Employees.FindAsync(id);
-                if (employee is null)
-                {
-                    return NotFound();
-                }
-
-                employee.Email = updateEmployeeDto.Email;
-                employee.Name = updateEmployeeDto.Name;
-                employee.Phone = updateEmployeeDto.Phone;
-                employee.Salary = updateEmployeeDto.Salary;
-
-                await dbContext.SaveChangesAsync();
+                var employee = await _employeeService.UpdateEmployeeData(id, updateEmployeeDto);
                 return Ok(employee);
             }
             catch (Exception ex)
@@ -116,15 +99,7 @@ namespace EmployeeAdminPortal.Controllers
         {
             try
             {
-                var employee = await dbContext.Employees.FindAsync(id);
-
-                if (employee is null)
-                {
-                    return NotFound();
-                }
-
-                dbContext.Employees.Remove(employee);
-                await dbContext.SaveChangesAsync();
+                var employee = _employeeService.DeleteEmployee(id);
                 return NoContent();
             }
             catch (Exception ex)
